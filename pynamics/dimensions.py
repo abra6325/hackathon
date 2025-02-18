@@ -30,6 +30,8 @@ class Dimension:
 
     def add_dim(self, dim):
         return Dimension(self.x + dim.x, self.y + dim.y)
+    def subtract_dim(self, dim):
+        return Dimension(self.x - dim.x, self.y - dim.y)
 
     def add_self(self, x: float, y: float):
         self.x += x
