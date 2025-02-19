@@ -1,4 +1,6 @@
-from .gameobject.gameobject import GameObject
+import math
+
+from .gameobject.gameobject import GameObject,Dimension
 from .gamemanager import GameManager
 from .interface import PyNamical
 from .events import EventType, KeyEvaulator
@@ -43,7 +45,8 @@ def establish_basic_movement_wasd(manager: GameManager, parent: GameObject):
     def m(ctx):
         parent.position.x += 1
 
-
+def distance(x:Dimension,y:Dimension):
+    return math.sqrt((x.x-y.x)**2+(x.y-y.y)**2)
 class ExampleLargeBinaryObject(PyNamical):
 
     def __init__(self, parent):

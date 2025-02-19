@@ -1,84 +1,91 @@
-import tkinter as tk
-import threading
-import random
-import time
+import pynamics as pn
 
-class World:
-    def __init__(self, size):
-        self.size = size
-        self.objects = [[None for i in range(size)] for j in range(size)]
-        self.objectsMap = {}
-        self.actions = []
-    def updateObject(self, position: tuple, obj):
-        x = position[0]
-        y = position[1]
-        self.objects[x][y] = obj
-        if obj in self.objectsMap.keys():
-            self.objectsMap[obj].append((x, y))
+ctx = pn.GameManager(pn.Dim(10000, 10000), tps=128, fps=0, event_tracker=True)
+window = pn.ProjectWindow(ctx)
+
+
+class Blob(pn.GameObject):
+    def __init__(self, world: pn.GameManager, size, x, y, nutrition: int):
+        super().__init__(world, x, y, size, size)
+        self.nutrition = nutrition
+        for i in self.parent.objects:
+            if isinstance(i, MovableIndividual):
+                i.updateNearest()
+
+
+class MovableIndividual(pn.GameObject):
+    def __init__(self, world: pn.PyNamical, size, x, y):
+        self.nearest = None
+        self.nearestDistance = 0
+        self.speed = 1
+        super().__init__(world, x, y, size, size)
+
+    def pathfindNearestBlob(self):
+        assert isinstance(self.parent, pn.GameManager)
+        large = [0, None]
+        for i in self.parent.objects:
+            if isinstance(i, Blob):
+                dist = pn.utils.distance(i.position, self.position)
+                if dist > large[0]:
+                    large[0] = dist
+                    large[1] = i
+        if large[1]:
+            return large
         else:
-            self.objectsMap[obj] = [(x, y)]
-        if isinstance(obj,ActionIndividual):
-            self.actions.append(obj)
-    def act(self):
-        for i in self.actions:
-            i.action()
-    def getObject(self, position: tuple):
-        return self.objects[position[0]][position[1]]
+            return None
 
-    def getPointsForObject(self, obj):
-        return self.objectsMap[obj]
+    def updateNearest(self):
+        near = self.pathfindNearestBlob()
+        self.nearest = near[1]
+        self.nearestDistance = near[0]
+    def collide(self,other:Blob):
+        p1 = self.points[0]
+        p2 = None
+        for i in self.points[1:]:
+            if i[0] != p1[0] and i[1] != p1[1]:
+                p2 = i
+        q2 = None
+        q1 = other.points[0]
+        for i in other.points[1:]:
+            if i[0] != q1[0] and i[1] != q1[1]:
+                q2 = i
+        x1 = p1[0]
+        y1 = p1[1]
+        x2 = p2[0]
+        y2 = p2[1]
+        x3 = q1[0]
+        y3 = q1[1]
+        x4 = q2[0]
+        y4 = q2[1]
+        x5 = max(x1, x3)
+        y5 = max(y1, y3)
 
-    def printWorld(self):
-        for i in range(self.size): print(str(self.objects[i]) + "\n")
+        # gives top-right point
+        # of intersection rectangle
+        x6 = min(x2, x4)
+        y6 = min(y2, y4)
+        intersect = True
+        # no intersection
+        if x5 > x6 or y5 > y6:
+            intersect = False
+        return intersect
+
+    def update(self):
+        print(self.nearest)
+        if isinstance(self.nearest, Blob):
+
+            cleanVal = self.nearest.position.subtract_dim(self.position)
+
+            xchange = cleanVal.x / self.nearestDistance
+
+            ychange = cleanVal.y / self.nearestDistance
+
+            self.position.add_self(xchange, ychange)
+            if self.collide(self.nearest):
+                self.nearest.delete()
+
+b2 = MovableIndividual(ctx, 10, 0, 0)
+b1 = Blob(ctx, 10, 500, 500, 10)
 
 
-class ActionIndividual:
-    def __init__(self, world: World, position: tuple):
-        self.world = world
-        self.position = position
-
-    def action(self):
-        pass
-
-
-class MovableLifespannedIndividual(ActionIndividual):
-    def __init__(self, speed, initial_lifespan, world, position):
-        super().__init__(world, position)
-        self.speed = speed
-        self.lifespan = initial_lifespan
-
-    def action(self):
-        for i in range(self.speed):
-            DIRECTION = random.randint(1, 4)
-            if DIRECTION == 1:
-                self.position[0] += 1
-            elif DIRECTION == 2:
-                self.position[0] -= 1
-            elif DIRECTION == 3:
-                self.position[1] += 1
-            elif DIRECTION == 4:
-                self.position[1] -= 1
-        if self.world.getObject(self.position) == 1:
-            self.lifespan += 5
-        self.lifespan -= 1
-
-    def __repr__(self):
-        return "Entity"
-
-
-world = World(100)
-for i in range(100):
-    position = (random.randint(0, 99), random.randint(0, 99))
-    world.updateObject(position, MovableLifespannedIndividual(1, 100, world, position))
-world.printWorld()
-while True:
-    time.sleep(0.5)
-    world.act()
-
-# root = tk.Tk()
-# root.geometry("800x800")
-#
-# createThread = threading.Thread(target=createAndUpdateWorld(root))
-# createThread.start()
-# root.title("Simulation")
-# root.mainloop()
+ctx.start()
