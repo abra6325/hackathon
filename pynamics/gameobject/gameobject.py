@@ -209,14 +209,18 @@ class GameObject(PyNamical):
             try:
                 self.parent.remove_object(self)
                 self.parent.displayorder.remove(self)
-                #self.parent.window.remove(self)
+                self.parent.window.remove(self)
                 self.unbind()
             except KeyError as e:
                 #Logger.warn(f"Attempting to remove {self} which does not have any active parents or hooked GameManager. Delete operation ignored")
                 pass
             
             del self
-    
+    def getRealPoints(self):
+        ret = []
+        for i in self.points:
+            ret.append((i[0]+self.position.x,-(i[1]+self.position.y)))
+        return ret
 
     def __repr__(self):
         return f"GameObject()"
