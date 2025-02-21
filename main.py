@@ -68,7 +68,7 @@ class MovableLifespannedIndividual(ActionIndividual):
 
 world = World(100)
 for i in range(100):
-    position = (random.randint(0, 99), random.randint(0, 99))
+    position = [random.randint(0, 99), random.randint(0, 99)]
     world.updateObject(position, MovableLifespannedIndividual(1, 100, world, position))
 world.printWorld()
 while True:
