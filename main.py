@@ -150,9 +150,9 @@ class MovableIndividual(pn.GameObject):
 
         cleanVal = self.nearest.position.subtract_dim(self.position)
 
-        xchange = cleanVal.x / self.nearestDistance * self.speed * 5
+        xchange = cleanVal.x / self.nearestDistance * self.speed * 2
 
-        ychange = cleanVal.y / self.nearestDistance * self.speed * 5
+        ychange = cleanVal.y / self.nearestDistance * self.speed * 2
 
 
 
@@ -186,6 +186,7 @@ class MovableIndividual(pn.GameObject):
                     newbaby.energy = half
                     newbaby.fissioned = True
                     newbaby.noenergy = True
+                    newbaby.speed += (random.random() - 0.5) * 0.1
 
 
         self.position.add_self(xchange, ychange)
