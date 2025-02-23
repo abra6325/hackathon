@@ -24,7 +24,7 @@ HOME: edges of the platform
 
 Individuals
  - if they run out of energy, they die.
- - if they get 2 food during the day and get home, they will reproduce. A mutation will occur on the offspring.
+ - if they have the energy of 2 foods at the end of the day, they will reproduce. A mutation will occur on the offspring.
     - the offspring and the parent evenly splits the energy (floored).
  - INFO values: Speed, size, sight, energy, age.
 
