@@ -479,6 +479,7 @@ class LegacyProjectWindow(PyNamical):
 
         if self._curcolor != self.color:
             self._curcolor = Color(self.color.r, self.color.g, self.color.b)
+            self.surface.config(bg=str(self._curcolor))
 
 
         for i in self.parent.objects:

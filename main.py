@@ -2,8 +2,14 @@ import math
 
 import pynamics as pn
 import random
-ctx = pn.GameManager(pn.Dim(10000, 10000), tps=128, fps=0, event_tracker=True)
-window = pn.ProjectWindow(ctx)
+
+TPS = 128
+DAY = TPS * 3
+
+CLOCK = None
+
+ctx = pn.GameManager(pn.Dim(10000, 10000), tps=TPS, fps=0, event_tracker=True)
+window = pn.ProjectWindow(ctx, size=pn.Dimension(800, 800))
 
 
 class Blob(pn.GameObject):
@@ -14,15 +20,26 @@ class Blob(pn.GameObject):
             if isinstance(i, MovableIndividual):
                 i.updateNearest()
 
+
+
 class MovableIndividual(pn.GameObject):
     def __init__(self, world: pn.PyNamical, size, x, y):
         self.nearest = None
         self.nearestDistance = 0
         self.speed = 1
 
+        self.energy = 1000
+
+
         super().__init__(world, x, y, size, size)
+        self.energy_display = pn.Text(world, self.x, self.y + 10, font=pn.TextFont("Helvetica", 8))
+
         self.fill_color = "red"
         self.color = "black"
+
+
+
+
 
     def pathfindNearestBlob(self):
         assert isinstance(self.parent, pn.GameManager)
@@ -77,6 +94,8 @@ class MovableIndividual(pn.GameObject):
 
         return False
 
+
+
     def update(self):
         if isinstance(self.nearest, Blob):
             self.nearestDistance = self.position.distance(self.nearest.position)
@@ -95,10 +114,69 @@ class MovableIndividual(pn.GameObject):
                 assert isinstance(self.parent,pn.GameManager)
                 b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
 
+        try:
+            self.energy_display.x = self.x
+            self.energy_display.y = self.y + 20
+            self.energy_display.text = "Energy: " + str(self.energy)
+        except:
+            pass
+
+class DayTimer(pn.Text):
+
+    def __init__(self, world):
+
+        self.during = "day"
+        self.half = int(DAY / 2)
+        self.current = 0
+
+        self.date = 1
+
+        super().__init__(world, 100, 25, font=pn.TextFont("Helvetica", 12))
+
+
+    def update(self):
+        self.current += 1
+        self.text = f"Day {self.date} {self.during} ({self.current}/{self.half})"
+
+
+        if self.current >= self.half:
+            self.current = 0
+
+            if self.during == "day":
+                self.during = "night"
+
+                for human in HUMANS:
+                    pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"]).play(human.energy_display.font.color, [255, 255, 255])
+
+                ani = pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"])
+                ani.play(window.color, [0, 0, 0])
+
+            else:
+                self.during = "day"
+                self.date += 1
+
+                for human in HUMANS:
+                    pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"]).play(human.energy_display.font.color, [0, 0, 0])
+
+                ani = pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"])
+                ani.play(window.color, [255, 255, 255])
+
+
+
+CLOCK = DayTimer(ctx)
+HUMANS = []
+
+FRUITS = []
 
 b2 = MovableIndividual(ctx, 10, 0, 0)
+HUMANS.append(b2)
 b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
+HUMANS.append(b2)
 b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
+HUMANS.append(b2)
+
+
+
 b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
 b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
 b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)

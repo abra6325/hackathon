@@ -527,7 +527,7 @@ class AnimatedSprite(GameObject):
 
 class TextFont:
 
-    def __init__(self, name: str = "Helvetica", size: int = 15, type: str = "", color: str = "black"):
+    def __init__(self, name: str = "Helvetica", size: int = 15, type: str = "", color: str = Color(0, 0, 0)):
         self.name = name
         self.size = size
         self.type = type
@@ -546,7 +546,7 @@ class Text(GameObject):
         self.collision = False
         self.text = text
         self.font = font
-        self.i=0
+        self.color = Color(0, 0, 0)
 
         #self.__setattr__ = self._silent__setattr__
 
@@ -561,5 +561,4 @@ class Text(GameObject):
         return f"Text(\"{self.text}\")"
 
     def update(self):
-        print(self.i)
-        self.i+=1
+        pass
