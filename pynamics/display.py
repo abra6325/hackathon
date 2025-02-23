@@ -558,6 +558,11 @@ class LegacyProjectWindow(PyNamical):
                                 pos2 = j[1]
                                 self.surface.create_line(last[0] + i.x, last[1] + i.y, pos1 + i.x, pos2 + i.y,
                                                          tags=f"ID{g}", fill=i.color)
+                            else:
+                                pos1 = j[0]
+                                pos2 = j[1]
+                                self.surface.create_line(i.x, i.y, pos1 + i.x, pos2 + i.y,
+                                                         tags=f"ID{g}", fill=i.color)
                             last = j
 
                     i.last_display_position = Dimension(i.position.x, i.position.y)
