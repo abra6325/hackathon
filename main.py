@@ -21,6 +21,11 @@ class Blob(pn.GameObject):
         for i in self.parent.objects:
             if isinstance(i, MovableIndividual):
                 i.updateNearest()
+    def delete(self):
+        for i in self.parent.objects:
+            if isinstance(i, MovableIndividual):
+                i.updateNearest()
+        super().delete()
 
 
 
@@ -195,8 +200,10 @@ class MovableIndividual(pn.GameObject):
                 if self.fissioned:
                     self.fissioned = False
                 if self.collide(self.nearest):
-                    self.energy += self.nearest.nutrition
                     self.nearest.delete()
+                    self.energy += self.nearest.nutrition
+
+
                     self.nearest = None
                     self.nearestDistance = 0
                     assert isinstance(self.parent, pn.GameManager)
@@ -294,7 +301,7 @@ class DayTimer(pn.Text):
                 ani.play(window.color, [255, 255, 255])
 
                 for i in range(BLOBS_PER_DAY):
-                    b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+                    b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), parameters.NUTRITION)
                     FRUITS.append(b)
 
 class Shelter(pn.GameObject):
@@ -334,8 +341,8 @@ for i in range(BLOBS_PER_DAY):
     b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), parameters.NUTRITION)
     FRUITS.append(b)
 
-
 CLOCK = DayTimer(ctx)
+
 
 
 
