@@ -8,7 +8,7 @@ window = pn.ProjectWindow(ctx)
 
 class Blob(pn.GameObject):
     def __init__(self, world: pn.GameManager, size, x, y, nutrition: int):
-        super().__init__(world, x, y, size, size)
+        super().__init__(world, x, y, size, size,color="black",fill_color="blue")
         self.nutrition = nutrition
         for i in self.parent.objects:
             if isinstance(i, MovableIndividual):
@@ -19,7 +19,10 @@ class MovableIndividual(pn.GameObject):
         self.nearest = None
         self.nearestDistance = 0
         self.speed = 1
+
         super().__init__(world, x, y, size, size)
+        self.fill_color = "red"
+        self.color = "black"
 
     def pathfindNearestBlob(self):
         assert isinstance(self.parent, pn.GameManager)
