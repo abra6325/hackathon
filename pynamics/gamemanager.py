@@ -8,6 +8,7 @@ from .debugger import Debugger
 from .logger import Logger
 import threading
 import time
+import traceback
 
 
 class Event:
@@ -299,6 +300,11 @@ class GameManager(PyNamical):
         def update_self():
             while self.terminated == False:
 
+                try:
+                    if object.terminated: break
+                except:
+                    pass
+
                 while self.debug != None and self.debug.tickchanger_paused:
                     time.sleep(0.01)
                     if self.debug.tickchanger_stepping:
@@ -306,7 +312,10 @@ class GameManager(PyNamical):
                         break
                     continue
 
-                object.update()
+                try:
+                    object.update()
+                except Exception as e:
+                    print(traceback.format_exc())
                 time.sleep(self._epoch_tps)
 
         threading.Thread(target=update_self).start()

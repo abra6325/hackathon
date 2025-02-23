@@ -4,13 +4,14 @@ import pynamics as pn
 import random
 
 TPS = 128
-DAY = TPS * 3
+DAY = TPS * 10
 
 CLOCK = None
 
 ctx = pn.GameManager(pn.Dim(10000, 10000), tps=TPS, fps=0, event_tracker=True)
 window = pn.ProjectWindow(ctx, size=pn.Dimension(800, 800))
 
+SHELTERS = []
 
 class Blob(pn.GameObject):
     def __init__(self, world: pn.GameManager, size, x, y, nutrition: int):
@@ -19,6 +20,13 @@ class Blob(pn.GameObject):
         for i in self.parent.objects:
             if isinstance(i, MovableIndividual):
                 i.updateNearest()
+        self.age = 0
+
+    def update(self):
+        self.age += 1
+
+        if self.age >= DAY:
+            self.delete()
 
 
 
@@ -26,9 +34,11 @@ class MovableIndividual(pn.GameObject):
     def __init__(self, world: pn.PyNamical, size, x, y):
         self.nearest = None
         self.nearestDistance = 0
-        self.speed = 1
+        self.speed = 1.05
 
-        self.energy = 1000
+        self.energy = 500000
+
+        self.sight = 10
 
 
         super().__init__(world, x, y, size, size)
@@ -37,6 +47,11 @@ class MovableIndividual(pn.GameObject):
         self.fill_color = "red"
         self.color = "black"
 
+        self.status = "harvesting"
+        self.noenergy = False
+
+        self.age = 0
+        self.fissioned = False
 
 
 
@@ -97,27 +112,96 @@ class MovableIndividual(pn.GameObject):
 
 
     def update(self):
+
+        # print("UPDATE")
+        self.age += 1
+
+        if self.energy <= 0:
+            self.delete()
+            self.energy_display.delete()
+
+
+        if self.status == "sheltering" and CLOCK.during == "day":
+            self.status = "harvesting"
+            self.updateNearest()
+
+        # if self.status == "harvesting" and CLOCK.during == "day":
+
+
+        if self.status == "harvesting" and CLOCK.during == "night":
+            self.status = "sheltering"
+
+            mind = math.inf
+            minshelt = SHELTERS[0]
+
+            for shelter in SHELTERS:
+                dist = pn.utils.distance(self.position, shelter.position)
+
+                if dist < mind:
+                    mind = dist
+                    minshelt = shelter
+
+            self.nearest = minshelt
+
+        #MOVING
+
+
+        self.nearestDistance = self.position.distance(self.nearest.position)
+
+        cleanVal = self.nearest.position.subtract_dim(self.position)
+
+        xchange = cleanVal.x / self.nearestDistance * self.speed * 5
+
+        ychange = cleanVal.y / self.nearestDistance * self.speed * 5
+
+
+
         if isinstance(self.nearest, Blob):
-            self.nearestDistance = self.position.distance(self.nearest.position)
-
-            cleanVal = self.nearest.position.subtract_dim(self.position)
-
-            xchange = cleanVal.x / self.nearestDistance
-
-            ychange = cleanVal.y / self.nearestDistance
-
-            self.position.add_self(xchange, ychange)
+            self.noenergy = False
+            if self.fissioned:
+                self.fissioned = False
             if self.collide(self.nearest):
                 self.nearest.delete()
                 self.nearest = None
                 self.nearestDistance = 0
-                assert isinstance(self.parent,pn.GameManager)
+                assert isinstance(self.parent, pn.GameManager)
+
                 b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+
+                self.energy += 100000
+        if isinstance(self.nearest, Shelter):
+            if self.collide(self.nearest):
+
+                xchange = 0
+                ychange = 0
+
+                self.noenergy = True
+                if not self.fissioned:
+                    self.fissioned = True
+
+                    half = self.energy / 2
+                    self.energy = half
+
+                    newbaby = MovableIndividual(self.parent, self.size.x, self.nearest.position.x + random.randint(25, 50), self.nearest.position.y + random.randint(25, 50))
+                    newbaby.energy = half
+                    newbaby.fissioned = True
+                    newbaby.noenergy = True
+
+
+        self.position.add_self(xchange, ychange)
+
+
+        if not self.noenergy: self.energy -= pow(self.size.x, 3) * pow(self.speed, 2) + self.sight
 
         try:
             self.energy_display.x = self.x
-            self.energy_display.y = self.y + 20
-            self.energy_display.text = "Energy: " + str(self.energy)
+            self.energy_display.y = self.y + 50
+            self.energy_display.text = "Energy: " + str(round(self.energy / 1000)) + "kJ\n" +\
+            f"Size: {self.size.x}\n" +\
+                f"Speed: {self.speed}\n" +\
+                f"Sight: {self.sight}\n" +\
+                f"Status: {self.status}\n" +\
+                f"Age: {self.age}"
         except:
             pass
 
@@ -131,7 +215,7 @@ class DayTimer(pn.Text):
 
         self.date = 1
 
-        super().__init__(world, 100, 25, font=pn.TextFont("Helvetica", 12))
+        super().__init__(world, 400, 25, font=pn.TextFont("Helvetica", 12))
 
 
     def update(self):
@@ -161,9 +245,27 @@ class DayTimer(pn.Text):
                 ani = pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"])
                 ani.play(window.color, [255, 255, 255])
 
+class Shelter(pn.GameObject):
+
+    def __init__(self, world, x, y):
+        super().__init__(world, x, y, 50, 50, color="black", fill_color="green")
+
+        self.residents = 0
+        self.resident = pn.Text(world, self.x + 25, self.y + 25, text="0/∞")
+
+    def update(self):
+        self.resident.text = f"{self.residents}/∞"
+
+shelter_a = Shelter(ctx, 0, 0)
+shelter_b = Shelter(ctx, 750, 0)
+shelter_c = Shelter(ctx, 750, 750)
+shelter_d = Shelter(ctx, 0, 750)
+SHELTERS.append(shelter_a)
+SHELTERS.append(shelter_b)
+SHELTERS.append(shelter_c)
+SHELTERS.append(shelter_d)
 
 
-CLOCK = DayTimer(ctx)
 HUMANS = []
 
 FRUITS = []
@@ -177,9 +279,15 @@ HUMANS.append(b2)
 
 
 
-b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
-b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
-b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
+for i in range(10):
+    b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+
+
+CLOCK = DayTimer(ctx)
+
+
+
+
 
 
 ctx.start()
