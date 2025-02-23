@@ -188,6 +188,7 @@ class GameObject(PyNamical):
         self.anchor = anchor
 
         self._debughighlight = None # TKCanvas Support
+        self.terminated = False
         
     def collide(self, other):
         collision = False
@@ -209,6 +210,9 @@ class GameObject(PyNamical):
                     break
         return collision
     def delete(self):
+
+        self.terminated = True
+
         if isinstance(self.parent.objects, set):
             try:
                 self.parent.remove_object(self)

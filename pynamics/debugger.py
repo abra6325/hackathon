@@ -39,7 +39,14 @@ class Console:
 
     def execute(self, query):
 
+        self.log(f">>> {query}")
+        print = self.log
+
         main = self.root
+        try:
+            exec(query)
+        except:
+            self.log(traceback.format_exc())
 
 
 
