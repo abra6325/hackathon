@@ -1,4 +1,0 @@
-
-
-class OperationFail(Exception):
-    pass
