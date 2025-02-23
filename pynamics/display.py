@@ -26,14 +26,14 @@ try:
 
     
     USE_OPENGL = True
-    
+
 except ModuleNotFoundError as e:
     Logger.print(f"PyOpenGL: {e}", channel=4)
     Logger.print("PyOpenGL is not found. ProjectWindow is using legacy tkinter canvas.", channel=3)
 except ImportError as e:
     Logger.print(f"PyOpenGL: {e}", channel=4)
     Logger.print(f"PyOpenGL occured an error. ProjectWindow is using legacy tkinter canvas", channel=3)
-
+USE_OPENGL = False
 if not USE_OPENGL:
     os.environ.setdefault("PN_WINDOW_MODE", "legacy")
 
