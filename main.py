@@ -166,7 +166,7 @@ class MovableIndividual(pn.GameObject):
                 self.nearestDistance = 0
                 assert isinstance(self.parent, pn.GameManager)
 
-                b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+
 
                 self.energy += 100000
         if isinstance(self.nearest, Shelter):
@@ -221,7 +221,7 @@ class DayTimer(pn.Text):
 
     def update(self):
         self.current += 1
-        self.text = f"Day {self.date} {self.during} ({self.current}/{self.half})"
+        self.text = f"Day {self.date} {self.during} ({self.current}/{self.half})\nPopulation: {len(HUMANS)}"
 
 
         if self.current >= self.half:
@@ -271,16 +271,15 @@ HUMANS = []
 
 FRUITS = []
 
-b2 = MovableIndividual(ctx, 10, 0, 0)
-HUMANS.append(b2)
-b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
-HUMANS.append(b2)
-b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
-HUMANS.append(b2)
-
-
 
 for i in range(10):
+    b2 = MovableIndividual(ctx, 10, random.randint(0, 799), random.randint(0, 799))
+    HUMANS.append(b2)
+
+
+
+
+for i in range(50):
     b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
 
 
