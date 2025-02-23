@@ -2,6 +2,8 @@ import math
 import parameters
 import pynamics as pn
 import random
+import formulas
+import matplotlib.pyplot as plt
 
 TPS = parameters.TPS
 DAY = parameters.DAY
@@ -13,6 +15,12 @@ ctx = pn.GameManager(pn.Dim(800, 800), tps=TPS, fps=0, event_tracker=True)
 window = pn.ProjectWindow(ctx, size=pn.Dimension(800, 800))
 
 SHELTERS = []
+
+axis_x = []
+axis_size = []
+axis_sight = []
+axis_speed = []
+axis_population = []
 
 class Blob(pn.GameObject):
     def __init__(self, world: pn.GameManager, size, x, y, nutrition: int):
@@ -48,6 +56,8 @@ class MovableIndividual(pn.GameObject):
         self.status = "harvesting"
         self.noenergy = False
 
+        self.target = None
+
         self.age = 0
         self.fissioned = False
 
@@ -63,6 +73,11 @@ class MovableIndividual(pn.GameObject):
                 if dist < large[0]:
                     large[0] = dist
                     large[1] = i
+            if i is not self and isinstance(i, MovableIndividual) and (self.size.x - i.size.x) / i.size.x >= 0.2 :
+                dist = pn.utils.distance(i.position, self.position)
+                if dist < large[0]:
+                    large[0] = dist
+                    large[1] = i
 
         if large[1] and large[0] < self.sight:
             return large
@@ -70,6 +85,7 @@ class MovableIndividual(pn.GameObject):
             return None
 
     def updateNearest(self):
+
         near = self.pathfindNearestBlob()
         if near:
             self.nearest = near[1]
@@ -175,18 +191,18 @@ class MovableIndividual(pn.GameObject):
 
             cleanVal = self.nearest.position.subtract_dim(self.position)
 
-            xchange = cleanVal.x / self.nearestDistance * self.speed * 2
+            xchange = cleanVal.x / self.nearestDistance * self.speed * parameters.MOVE_SPEED_MULTIPLIER
 
-            ychange = cleanVal.y / self.nearestDistance * self.speed * 2
+            ychange = cleanVal.y / self.nearestDistance * self.speed * parameters.MOVE_SPEED_MULTIPLIER
 
         if self.nearest is None:
             self.nearestDistance = self.position.distance(self.tmpDestination)
 
             cleanVal = self.tmpDestination.subtract_dim(self.position)
 
-            xchange = cleanVal.x / self.nearestDistance
+            xchange = cleanVal.x / self.nearestDistance * self.speed
 
-            ychange = cleanVal.y / self.nearestDistance
+            ychange = cleanVal.y / self.nearestDistance * self.speed
 
             self.position.add_self(xchange, ychange)
             self.updateNearestOnlyBlobs()
@@ -195,23 +211,6 @@ class MovableIndividual(pn.GameObject):
 
 
         else:
-            if isinstance(self.nearest, Blob):
-                self.noenergy = False
-                if self.fissioned:
-                    self.fissioned = False
-                if self.collide(self.nearest):
-                    self.nearest.delete()
-                    self.energy += self.nearest.nutrition
-
-
-                    self.nearest = None
-                    self.nearestDistance = 0
-                    assert isinstance(self.parent, pn.GameManager)
-
-                    # b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
-                    # FRUITS.append(b)
-                    self.updateNearest()
-
 
             if isinstance(self.nearest, Shelter):
                 if self.collide(self.nearest):
@@ -238,14 +237,53 @@ class MovableIndividual(pn.GameObject):
                         newbaby.noenergy = True
                         newbaby.sight = self.sight + random.randint(-parameters.SIGHT_MUTATE_INDEX,parameters.SIGHT_MUTATE_INDEX)
                         newbaby.speed += (random.random() - parameters.SPEED_MUTATE_INDEX) * 0.5
+                        newbaby.status = "sheltering"
+                        newbaby.nearest = self.nearest
 
                         HUMANS.append(newbaby)
+
+            elif isinstance(self.nearest, Blob):
+                self.noenergy = False
+                if self.fissioned:
+                    self.fissioned = False
+                if self.collide(self.nearest):
+                    self.nearest.delete()
+                    self.energy += self.nearest.nutrition
+
+
+                    self.nearest = None
+                    self.nearestDistance = 0
+                    assert isinstance(self.parent, pn.GameManager)
+
+                    # b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+                    # FRUITS.append(b)
+                    self.updateNearest()
+
+            elif isinstance(self.nearest, MovableIndividual):
+                if (self.size.x - self.nearest.size.x) / self.nearest.size.x >= 0.2:
+                    if self.collide(self.nearest):
+                        self.nearest.energy_display.delete()
+                        self.nearest.delete()
+
+                        self.energy += self.nearest.energy
+
+
+                        HUMANS.remove(self.nearest)
+                        self.nearest = None
+
+                        for human in HUMANS:
+                            human.updateNearest()
+
+
+                        self.updateNearest()
+
+
 
 
         self.position.add_self(xchange, ychange)
 
 
-        if not self.noenergy: self.energy -= pow(self.size.x, 3) * pow(self.speed, 2) + self.sight
+        if not self.noenergy: self.energy -= formulas.energy_use(self.size.x, self.speed, self.sight)
 
         try:
             self.energy_display.x = self.x
@@ -269,12 +307,24 @@ class DayTimer(pn.Text):
 
         self.date = 1
 
-        super().__init__(world, 400, 25, font=pn.TextFont("Helvetica", 12))
+        self.recorded_date = None
+
+        self.speed_avg = None
+        self.size_avg = None
+        self.sight_avg = None
+
+        super().__init__(world, 400, 350, font=pn.TextFont("Helvetica", 12))
 
 
     def update(self):
         self.current += 1
-        self.text = f"Day {self.date} {self.during} ({self.current}/{self.half})\nPopulation: {len(HUMANS)}"
+
+        statistics = f"""Day {self.recorded_date} Statistics:
+Average Speed: {self.speed_avg}
+Average Size: {self.size_avg}
+Average Sight: {self.sight_avg}"""
+
+        self.text = f"Day {self.date} {self.during} ({self.current}/{self.half})\nPopulation: {len(HUMANS)}\n" + statistics
 
 
         if self.current >= self.half:
@@ -298,6 +348,30 @@ class DayTimer(pn.Text):
 
             else:
                 self.during = "day"
+
+                self.recorded_date = self.date
+
+                speed = 0
+                size = 0
+                sight = 0
+
+                for human in HUMANS:
+                    speed += human.speed
+                    size += human.size.x
+                    sight += human.sight
+
+                self.speed_avg = speed / len(HUMANS)
+                self.size_avg = size / len(HUMANS)
+                self.sight_avg = sight / len(HUMANS)
+
+                axis_x.append(self.date)
+                axis_speed.append(self.speed_avg)
+                axis_size.append(self.size_avg)
+                axis_sight.append(self.sight_avg)
+                axis_population.append(len(HUMANS))
+
+
+
                 self.date += 1
 
                 for human in HUMANS:
@@ -329,15 +403,23 @@ SHELTERS.append(shelter_a)
 SHELTERS.append(shelter_b)
 SHELTERS.append(shelter_c)
 SHELTERS.append(shelter_d)
+shelter_a = Shelter(ctx, 0, 375)
+shelter_b = Shelter(ctx, 375, 0)
+shelter_c = Shelter(ctx, 750, 375)
+shelter_d = Shelter(ctx, 375, 750)
+SHELTERS.append(shelter_a)
+SHELTERS.append(shelter_b)
+SHELTERS.append(shelter_c)
+SHELTERS.append(shelter_d)
 
 
 HUMANS = []
 
 FRUITS = []
 
-
 for i in range(parameters.Num_indi):
     b2 = MovableIndividual(ctx, 10, random.randint(0, 799), random.randint(0, 799))
+    b2.speed = random.randint(10000, 20000) / 10000
     HUMANS.append(b2)
 
 
@@ -356,3 +438,47 @@ CLOCK = DayTimer(ctx)
 
 
 ctx.start()
+
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+
+# Initialize figure
+plt.ion()  # Turn on interactive mode
+fig, ax = plt.subplots()
+
+# Data for the plot
+
+
+# Create two lines (plots)
+line1, = ax.plot(axis_x, axis_sight, marker='o', linestyle='-', color='r', label="Avg Sight")
+line2, = ax.plot(axis_x, axis_size, marker='o', linestyle='-', color='g', label="Avg Size")
+line3, = ax.plot(axis_x, axis_speed, marker='o', linestyle='-', color='b', label="Avg Speed")
+line4, = ax.plot(axis_x, axis_population, marker='o', linestyle='-', color='y', label="Population")
+
+# Add a legend
+ax.legend()
+
+# Add points live
+# for i in range(10):
+#     x.append(i)
+#     y1.append(i ** 2)  # Line 1: Example data
+#     y2.append(i ** 1.5)  # Line 2: Example data
+#
+#     # Update both lines with new data
+#     line1.set_xdata(x)
+#     line1.set_ydata(y1)
+#
+#     line2.set_xdata(x)
+#     line2.set_ydata(y2)
+#
+#     # Redraw the plot
+#     fig.canvas.draw()
+#     fig.canvas.flush_events()
+#
+#     # Pause to simulate live updating
+#     plt.pause(0.5)
+
+# Keep the plot open after the loop
+plt.ioff()  # Turn off interactive mode
+plt.show()
