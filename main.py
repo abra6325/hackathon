@@ -1,28 +1,34 @@
 import math
 
-import pynamics as pn
+import yik
 import random
-ctx = pn.GameManager(pn.Dim(10000, 10000), tps=128, fps=0, event_tracker=True)
-window = pn.ProjectWindow(ctx)
+import pynamics as pn
+from yik.events import Event
 
+a = yik.ApplicationObject("RenderTestApplication")
+window = yik.WindowGLTk(a)
+ctx = yik.World(window)
 
-class Blob(pn.GameObject):
-    def __init__(self, world: pn.GameManager, size, x, y, nutrition: int):
+import os
+os.environ["PN_WINDOW_MODE"] = "legacy"
+
+class Blob(yik.Particle):
+    def __init__(self, world, size, x, y, nutrition: int):
         super().__init__(world, x, y, size, size)
         self.nutrition = nutrition
         for i in self.parent.objects:
             if isinstance(i, MovableIndividual):
                 i.updateNearest()
 
-class MovableIndividual(pn.GameObject):
-    def __init__(self, world: pn.PyNamical, size, x, y):
+class MovableIndividual(yik.Particle):
+    def __init__(self, world, size, x, y):
         self.nearest = None
         self.nearestDistance = 0
         self.speed = 1
         super().__init__(world, x, y, size, size)
 
     def pathfindNearestBlob(self):
-        assert isinstance(self.parent, pn.GameManager)
+        # assert isinstance(self.parent, pn.GameManager)
         large = [math.inf, None]
         for i in self.parent.objects:
             if isinstance(i, Blob):
@@ -93,12 +99,35 @@ class MovableIndividual(pn.GameObject):
                 b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
 
 
-b2 = MovableIndividual(ctx, 10, 0, 0)
-b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
-b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
-b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
-b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
-b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
+# b2 = MovableIndividual(ctx, 10, 0, 0)
+# b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
+# b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
+# b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
+# b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
+# b1 = Blob(ctx, 10, random.randint(0,799),random.randint(0,799), 10)
+
+# k = yik.Particle(ctx)
+
+class Fruit:
+
+    def __init__(self, world):
+        self._wrapped = yik.Particle(world)
+
+# fruit = Fruit(ctx)
 
 
-ctx.start()
+
+@window.add_event_listener(Event.Initialization.PostLoadEvent)
+def complete():
+    obj = yik.ImageTexture("images.jpg")
+    print(obj)
+    obj.load()
+
+    apples = yik.Image(ctx, 100, 100, texture=obj)
+
+
+
+
+window.launch()
+
+
