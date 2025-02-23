@@ -39,15 +39,15 @@ class MovableIndividual(pn.GameObject):
         near = self.pathfindNearestBlob()
         self.nearest = near[1]
         self.nearestDistance = near[0]
-    def collide(self,other:Blob):
-        points1 = self.getRealPoints()
-        points2 = other.getRealPoints()
-        topLeft1,botRight1 = points1[0],points1[2]
-        topLeft2,botRight2 = points2[0],points2[2]
-
-        if self.rectangles_intersect((topLeft1[0],topLeft1[1],botRight1[0],botRight1[1]),(topLeft2[0],topLeft2[1],botRight2[0],botRight2[1])):
-            return True
-        else: return False
+    # def collide(self,other:Blob):
+    #     points1 = self.getRealPoints()
+    #     points2 = other.getRealPoints()
+    #     topLeft1,botRight1 = points1[0],points1[2]
+    #     topLeft2,botRight2 = points2[0],points2[2]
+    #
+    #     if self.rectangles_intersect((topLeft1[0],topLeft1[1],botRight1[0],botRight1[1]),(topLeft2[0],topLeft2[1],botRight2[0],botRight2[1])):
+    #         return True
+    #     else: return False
     def findCorners(self,points1):
         topLeft1 = points1[0]
         botRight1 = points1[1]
