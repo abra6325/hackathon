@@ -1,0 +1,29 @@
+theory
+
+actions based on rounds of days
+
+HOME: edges of the platform
+ - individuals start day on homes
+ - when the day ends, they must move home, direcly to the edge of the platform. No other actions will be performed on their way hom.
+ - energy is used during return to home
+
+
+Individuals
+ - if they run out of energy, they die.
+ - if they get 1 food during the day and get home safely, they live on to the next day.
+ - if they get 2 food during the day and get home, they will reproduce. A mutation will occur on the offspring.
+ - INFO values: Speed, size, sight, energy, age.
+
+Mutations (slightly greater/smaller when reproduce)
+ - Speed (distance per tick)
+ - Size
+    - you can eat other individuals as food if you are >=20% larger.
+    - larger sizes move faster even at the same speed value (larger steps)
+ - Sight
+    - a circular area around each individual
+    - An individual only knows if a food/other individual if it is in the area of sense.
+    - Other times, the individual randomly moves around.
+
+Energy
+ - energy consumption per tick move = (size^3)(speed^2) + sight
+ - homologous to equation of kinetic energy 1/2 m v^2
