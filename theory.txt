@@ -2,10 +2,25 @@ theory
 
 actions based on rounds of days
 
+USER INPUTS(?)
+ - Mutation (+- by entered value)
+ - Energy per food
+ - Number of food
+ - number of individuals
+ - time per day
+ - initial speed, size, sights
+    - for each individual OR for all
+
 HOME: edges of the platform
  - individuals start day on homes
  - when the day ends, they must move home, direcly to the edge of the platform. No other actions will be performed on their way hom.
  - energy is used during return to home
+ - AT THE END OF EACH DAY COLLECT EACH INDIVIDUAL:
+    - AGE
+    - SPEED
+    - SIZE
+    - SIGHT
+    - Total population
 
 Individuals
  - if they run out of energy, they die.
