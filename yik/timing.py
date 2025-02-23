@@ -105,7 +105,7 @@ class Routine(YikObject):
 
     def _unprecise_loop(self):
 
-        x = threading.Thread(target=lambda: self._loop_first_thread(amount=64))
+        x = threading.Thread(target=lambda: self._loop_first_thread(amount=self.frequency / 2))
         x.start()
         while True:
             x = threading.Thread(target=self._loop_first_thread)
@@ -143,7 +143,7 @@ class Routine(YikObject):
             x = threading.Thread(target=self._precise_loop_second_thread)
             x.start()
             time.sleep(self.calibration_sleep)
-            print(self._debug_ticks_completed)
+            print("TPS: " + str(self._debug_ticks_completed))
             self._debug_ticks_completed = 0
 
 
@@ -194,6 +194,7 @@ class CanTick(YikObject):
         :return:
         """
         pass
+
 
     def routine_launch(self):
 
