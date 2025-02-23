@@ -545,7 +545,9 @@ class LegacyProjectWindow(PyNamical):
                     # If its a TopLevelWhateverBody
                     elif isinstance(i, TopViewPhysicsBody):
                         self.surface.create_rectangle(i.x, i.y, i.x + i.size.x, i.y + i.size.y, fill="white", outline="white", tags=f"ID{g}")
-
+                    elif i.rectangle:
+                        self.surface.create_rectangle(i.x, i.y, i.x + i.size.x, i.y + i.size.y, fill=i.fill_color,
+                                                      outline=i.color, tags=f"ID{g}")
                     # If its a regular gameobject
                     elif len(i.points) > 0:
 

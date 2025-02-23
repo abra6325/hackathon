@@ -1,7 +1,5 @@
 import math
 
-from typing_extensions import override
-
 import pynamics as pn
 import random
 ctx = pn.GameManager(pn.Dim(10000, 10000), tps=128, fps=0, event_tracker=True)
@@ -10,20 +8,21 @@ window = pn.ProjectWindow(ctx)
 
 class Blob(pn.GameObject):
     def __init__(self, world: pn.GameManager, size, x, y, nutrition: int):
-        super().__init__(world, x, y, size, size)
+        super().__init__(world, x, y, size, size,color="black",fill_color="blue")
         self.nutrition = nutrition
-        self.color = "red"
         for i in self.parent.objects:
             if isinstance(i, MovableIndividual):
                 i.updateNearest()
-        self.style.set_style("color", "red")
 
 class MovableIndividual(pn.GameObject):
     def __init__(self, world: pn.PyNamical, size, x, y):
         self.nearest = None
         self.nearestDistance = 0
         self.speed = 1
+
         super().__init__(world, x, y, size, size)
+        self.fill_color = "red"
+        self.color = "black"
 
     def pathfindNearestBlob(self):
         assert isinstance(self.parent, pn.GameManager)

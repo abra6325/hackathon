@@ -130,7 +130,8 @@ class GameObject(PyNamical):
                  no_display=False,
                  zindex=1,
                  color: str = "white",
-                 destroy_outside_boundary: bool = False):
+                 destroy_outside_boundary: bool = False,
+                 fill_color: str = "white"):
         """
         :param x: The position of the GameObject, on X-Axis
         :param y: The position of the GameObject, on Y-Axis
@@ -158,13 +159,15 @@ class GameObject(PyNamical):
         self.rotation = rotation
         self.last_display_rotation = None
         self.this_display_position = rotation
-        self.color = color_alias(color)
+        self.color = color
         self.points = [
             ((0, 0), (0, self.size.y)),
             ((0, self.size.y), (self.size.x, self.size.y)),
             ((self.size.x, self.size.y), (self.size.x, 0)),
             ((self.size.x, 0), (0, 0))
         ]
+        self.rectangle = True
+        self.fill_color = fill_color
         # self.points = [
         #             (0, 0),
         #             (0, self.size.y),
@@ -174,6 +177,7 @@ class GameObject(PyNamical):
         self.clear_blit = clear_blit
         self.zindex = zindex
         if from_points is not None:
+            self.rectangle = False
             self.points = []
             for i in from_points:
                 self.points.append(i)
