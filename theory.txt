@@ -2,11 +2,25 @@ theory
 
 actions based on rounds of days
 
+USER INPUTS(?)
+ - Mutation (+- by entered value)
+ - Energy per food
+ - Number of food
+ - number of individuals
+ - time per day
+ - initial speed, size, sights
+    - for each individual OR for all
+
 HOME: edges of the platform
  - individuals start day on homes
  - when the day ends, they must move home, direcly to the edge of the platform. No other actions will be performed on their way hom.
  - energy is used during return to home
-
+ - AT THE END OF EACH DAY COLLECT EACH INDIVIDUAL:
+    - AGE
+    - SPEED
+    - SIZE
+    - SIGHT
+    - Total population
 
 Individuals
  - if they run out of energy, they die.
@@ -18,6 +32,7 @@ Mutations (slightly greater/smaller when reproduce)
  - Speed (distance per tick)
  - Size
     - you can eat other individuals as food if you are >=20% larger.
+    - those prey will move direcly away from the predator
     - larger sizes move faster even at the same speed value (larger steps)
  - Sight
     - a circular area around each individual
@@ -25,5 +40,5 @@ Mutations (slightly greater/smaller when reproduce)
     - Other times, the individual randomly moves around.
 
 Energy
- - energy consumption per tick move = (size^3)(speed^2) + sight
+ - energy usage per tick move = (size^3)(speed^2) + sight
  - homologous to equation of kinetic energy 1/2 m v^2
