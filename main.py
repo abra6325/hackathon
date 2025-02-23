@@ -69,6 +69,18 @@ class MovableIndividual(pn.GameObject):
         if near:
             self.nearest = near[1]
             self.nearestDistance = near[0]
+        elif self.status == "sheltering":
+            mind = math.inf
+            minshelt = SHELTERS[0]
+
+            for shelter in SHELTERS:
+                dist = pn.utils.distance(self.position, shelter.position)
+
+                if dist < mind:
+                    mind = dist
+                    minshelt = shelter
+
+            self.nearest = minshelt
         else:
             self.nearest = None
 
@@ -137,18 +149,18 @@ class MovableIndividual(pn.GameObject):
 
         if self.status == "harvesting" and CLOCK.during == "night":
             self.status = "sheltering"
-
-            mind = math.inf
-            minshelt = SHELTERS[0]
-
-            for shelter in SHELTERS:
-                dist = pn.utils.distance(self.position, shelter.position)
-
-                if dist < mind:
-                    mind = dist
-                    minshelt = shelter
-
-            self.nearest = minshelt
+            self.updateNearest()
+            # mind = math.inf
+            # minshelt = SHELTERS[0]
+            #
+            # for shelter in SHELTERS:
+            #     dist = pn.utils.distance(self.position, shelter.position)
+            #
+            #     if dist < mind:
+            #         mind = dist
+            #         minshelt = shelter
+            #
+            # self.nearest = minshelt
 
         #MOVING
 
