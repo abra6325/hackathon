@@ -1,6 +1,8 @@
 Num_food = 50
 Num_indi = 15
 speed = 1.05
+SPEED_MUTATE_INDEX = 0.5
+SIGHT_MUTATE_INDEX = 40
 sights = 200
 energy = 500000
 TPS = 128

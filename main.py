@@ -232,7 +232,8 @@ class MovableIndividual(pn.GameObject):
                         newbaby.energy = half
                         newbaby.fissioned = True
                         newbaby.noenergy = True
-                        newbaby.speed += (random.random() - 0.5) * 0.1
+                        newbaby.sight = self.sight + random.randint(-parameters.SIGHT_MUTATE_INDEX,parameters.SIGHT_MUTATE_INDEX)
+                        newbaby.speed += (random.random() - parameters.SPEED_MUTATE_INDEX) * 0.1
                         HUMANS.append(newbaby)
 
 
