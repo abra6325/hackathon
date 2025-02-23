@@ -1,5 +1,5 @@
 import math
-
+import parameters
 import pynamics as pn
 import random
 
@@ -8,7 +8,7 @@ DAY = TPS * 3
 
 CLOCK = None
 
-ctx = pn.GameManager(pn.Dim(10000, 10000), tps=TPS, fps=0, event_tracker=True)
+ctx = pn.GameManager(pn.Dim(800, 800), tps=TPS, fps=0, event_tracker=True)
 window = pn.ProjectWindow(ctx, size=pn.Dimension(800, 800))
 
 
@@ -27,9 +27,9 @@ class MovableIndividual(pn.GameObject):
         self.nearest = None
         self.nearestDistance = 0
         self.speed = 1
-
+        self.sight = parameters.sights
         self.energy = 1000
-
+        self.tmpDestination = pn.Dimension(0,0)
 
         super().__init__(world, x, y, size, size)
         self.energy_display = pn.Text(world, self.x, self.y + 10, font=pn.TextFont("Helvetica", 8))
@@ -50,15 +50,27 @@ class MovableIndividual(pn.GameObject):
                 if dist < large[0]:
                     large[0] = dist
                     large[1] = i
-        if large[1]:
+
+        if large[1] and large[0] < self.sight:
             return large
         else:
             return None
 
     def updateNearest(self):
         near = self.pathfindNearestBlob()
-        self.nearest = near[1]
-        self.nearestDistance = near[0]
+        if near:
+            self.nearest = near[1]
+            self.nearestDistance = near[0]
+        else:
+            self.nearest = None
+
+            self.tmpDestination = pn.Dimension(random.randint(0,self.parent.width),random.randint(0,self.parent.height))
+            self.nearestDistance = math.inf
+    def updateNearestOnlyBlobs(self):
+        near = self.pathfindNearestBlob()
+        if near:
+            self.nearest = near[1]
+            self.nearestDistance = near[0]
     # def collide(self,other:Blob):
     #     points1 = self.getRealPoints()
     #     points2 = other.getRealPoints()
@@ -113,6 +125,19 @@ class MovableIndividual(pn.GameObject):
                 self.nearestDistance = 0
                 assert isinstance(self.parent,pn.GameManager)
                 b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+        elif not self.nearest:
+            self.nearestDistance = self.position.distance(self.tmpDestination)
+
+            cleanVal = self.tmpDestination.subtract_dim(self.position)
+
+            xchange = cleanVal.x / self.nearestDistance
+
+            ychange = cleanVal.y / self.nearestDistance
+
+            self.position.add_self(xchange, ychange)
+            self.updateNearestOnlyBlobs()
+            if self.nearestDistance < 2:
+                self.updateNearest()
 
         try:
             self.energy_display.x = self.x
@@ -168,7 +193,7 @@ HUMANS = []
 
 FRUITS = []
 
-b2 = MovableIndividual(ctx, 10, 0, 0)
+b2 = MovableIndividual(ctx, 10, random.randint(0,799), random.randint(0,799))
 HUMANS.append(b2)
 b2 = MovableIndividual(ctx, 10,  random.randint(0,799),random.randint(0,799))
 HUMANS.append(b2)
