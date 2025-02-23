@@ -3,8 +3,8 @@ import parameters
 import pynamics as pn
 import random
 
-TPS = 128
-DAY = TPS * 10
+TPS = parameters.TPS
+DAY = parameters.DAY
 
 CLOCK = None
 BLOBS_PER_DAY = parameters.Num_food
@@ -28,11 +28,11 @@ class MovableIndividual(pn.GameObject):
     def __init__(self, world: pn.PyNamical, size, x, y):
         self.nearest = None
         self.nearestDistance = 0
-        self.speed = 1.05
+        self.speed = parameters.speed
         self.sight = parameters.sights
-        self.energy = 1000
+        self.energy = parameters.energy
         self.tmpDestination = pn.Dimension(0,0)
-        self.energy = 500000
+
 
         super().__init__(world, x, y, size, size)
         self.energy_display = pn.Text(world, self.x, self.y + 10, font=pn.TextFont("Helvetica", 8))
