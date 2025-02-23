@@ -3,7 +3,8 @@ import math
 import pynamics as pn
 import random
 ctx = pn.GameManager(pn.Dim(10000, 10000), tps=128, fps=0, event_tracker=True)
-window = pn.ProjectWindow(ctx)
+window = pn.ProjectWindow(ctx, size=pn.Dimension(800,800))
+
 
 
 class Blob(pn.GameObject):
