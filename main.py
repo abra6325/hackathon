@@ -195,6 +195,7 @@ class MovableIndividual(pn.GameObject):
                 if self.fissioned:
                     self.fissioned = False
                 if self.collide(self.nearest):
+                    self.energy += self.nearest.nutrition
                     self.nearest.delete()
                     self.nearest = None
                     self.nearestDistance = 0
@@ -204,7 +205,7 @@ class MovableIndividual(pn.GameObject):
                     # FRUITS.append(b)
                     self.updateNearest()
 
-                    self.energy += 80000
+
             if isinstance(self.nearest, Shelter):
                 if self.collide(self.nearest):
 
@@ -330,7 +331,7 @@ for i in range(parameters.Num_indi):
 
 
 for i in range(BLOBS_PER_DAY):
-    b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+    b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), parameters.NUTRITION)
     FRUITS.append(b)
 
 
