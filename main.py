@@ -3,10 +3,13 @@ import math
 import pynamics as pn
 import random
 
+import parameters
+
 TPS = 128
 DAY = TPS * 10
 
 CLOCK = None
+BLOBS_PER_DAY = parameters.Num_food
 
 ctx = pn.GameManager(pn.Dim(10000, 10000), tps=TPS, fps=0, event_tracker=True)
 window = pn.ProjectWindow(ctx, size=pn.Dimension(800, 800))
@@ -20,13 +23,14 @@ class Blob(pn.GameObject):
         for i in self.parent.objects:
             if isinstance(i, MovableIndividual):
                 i.updateNearest()
-        self.age = 0
+        # self.age = 0
 
     def update(self):
-        self.age += 1
+        # self.age += 1
 
-        if self.age >= DAY:
-            self.delete()
+        # if self.age >= DAY:
+        #     self.delete()
+        pass
 
 
 
@@ -120,6 +124,8 @@ class MovableIndividual(pn.GameObject):
             self.delete()
             self.energy_display.delete()
 
+            HUMANS.remove(self)
+
 
         if self.status == "sheltering" and CLOCK.during == "day":
             self.status = "harvesting"
@@ -145,48 +151,57 @@ class MovableIndividual(pn.GameObject):
 
         #MOVING
 
+        if self.nearest != None:
 
-        self.nearestDistance = self.position.distance(self.nearest.position)
+            self.nearestDistance = self.position.distance(self.nearest.position)
 
-        cleanVal = self.nearest.position.subtract_dim(self.position)
+            cleanVal = self.nearest.position.subtract_dim(self.position)
 
-        xchange = cleanVal.x / self.nearestDistance * self.speed * 2
+            xchange = cleanVal.x / self.nearestDistance * self.speed * 2
 
-        ychange = cleanVal.y / self.nearestDistance * self.speed * 2
+            ychange = cleanVal.y / self.nearestDistance * self.speed * 2
 
+        if self.nearest is None:
 
+            pass
 
-        if isinstance(self.nearest, Blob):
-            self.noenergy = False
-            if self.fissioned:
-                self.fissioned = False
-            if self.collide(self.nearest):
-                self.nearest.delete()
-                self.nearest = None
-                self.nearestDistance = 0
-                assert isinstance(self.parent, pn.GameManager)
+        else:
+            if isinstance(self.nearest, Blob):
+                self.noenergy = False
+                if self.fissioned:
+                    self.fissioned = False
+                if self.collide(self.nearest):
+                    self.nearest.delete()
+                    self.nearest = None
+                    self.nearestDistance = 0
+                    assert isinstance(self.parent, pn.GameManager)
 
+                    # b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+                    # FRUITS.append(b)
+                    self.updateNearest()
 
+                    self.energy += 80000
+            if isinstance(self.nearest, Shelter):
+                if self.collide(self.nearest):
 
-                self.energy += 100000
-        if isinstance(self.nearest, Shelter):
-            if self.collide(self.nearest):
+                    xchange = 0
+                    ychange = 0
 
-                xchange = 0
-                ychange = 0
+                    self.noenergy = True
+                    if not self.fissioned:
+                        self.fissioned = True
 
-                self.noenergy = True
-                if not self.fissioned:
-                    self.fissioned = True
+                        half = self.energy / 2
+                        self.energy = half
 
-                    half = self.energy / 2
-                    self.energy = half
-
-                    newbaby = MovableIndividual(self.parent, self.size.x, self.nearest.position.x + random.randint(25, 50), self.nearest.position.y + random.randint(25, 50))
-                    newbaby.energy = half
-                    newbaby.fissioned = True
-                    newbaby.noenergy = True
-                    newbaby.speed += (random.random() - 0.5) * 0.1
+                        newbaby = MovableIndividual(self.parent, self.size.x,
+                                                    self.nearest.position.x + random.randint(25, 50),
+                                                    self.nearest.position.y + random.randint(25, 50))
+                        newbaby.energy = half
+                        newbaby.fissioned = True
+                        newbaby.noenergy = True
+                        newbaby.speed += (random.random() - 0.5) * 0.1
+                        HUMANS.append(newbaby)
 
 
         self.position.add_self(xchange, ychange)
@@ -236,6 +251,13 @@ class DayTimer(pn.Text):
                 ani = pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"])
                 ani.play(window.color, [0, 0, 0])
 
+                while len(FRUITS) > 0:
+                    k = FRUITS.pop()
+                    k.delete()
+
+
+
+
             else:
                 self.during = "day"
                 self.date += 1
@@ -245,6 +267,10 @@ class DayTimer(pn.Text):
 
                 ani = pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"])
                 ani.play(window.color, [255, 255, 255])
+
+                for i in range(BLOBS_PER_DAY):
+                    b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+                    FRUITS.append(b)
 
 class Shelter(pn.GameObject):
 
@@ -272,15 +298,16 @@ HUMANS = []
 FRUITS = []
 
 
-for i in range(10):
+for i in range(parameters.Num_indi):
     b2 = MovableIndividual(ctx, 10, random.randint(0, 799), random.randint(0, 799))
     HUMANS.append(b2)
 
 
 
 
-for i in range(50):
-    b1 = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+for i in range(BLOBS_PER_DAY):
+    b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+    FRUITS.append(b)
 
 
 CLOCK = DayTimer(ctx)
