@@ -18,6 +18,7 @@ Mutations (slightly greater/smaller when reproduce)
  - Speed (distance per tick)
  - Size
     - you can eat other individuals as food if you are >=20% larger.
+    - those prey will move direcly away from the predator
     - larger sizes move faster even at the same speed value (larger steps)
  - Sight
     - a circular area around each individual
@@ -25,5 +26,5 @@ Mutations (slightly greater/smaller when reproduce)
     - Other times, the individual randomly moves around.
 
 Energy
- - energy consumption per tick move = (size^3)(speed^2) + sight
+ - energy usage per tick move = (size^3)(speed^2) + sight
  - homologous to equation of kinetic energy 1/2 m v^2
