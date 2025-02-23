@@ -226,14 +226,19 @@ class MovableIndividual(pn.GameObject):
                         half = self.energy / 2
                         self.energy = half
 
-                        newbaby = MovableIndividual(self.parent, self.size.x,
+                        size = self.size.x
+                        size += random.randint(-parameters.SIZE_MUTATE_INDEX, parameters.SIZE_MUTATE_INDEX)
+                        size = max(size, 5)
+
+                        newbaby = MovableIndividual(self.parent, size,
                                                     self.nearest.position.x + random.randint(25, 50),
                                                     self.nearest.position.y + random.randint(25, 50))
                         newbaby.energy = half
                         newbaby.fissioned = True
                         newbaby.noenergy = True
                         newbaby.sight = self.sight + random.randint(-parameters.SIGHT_MUTATE_INDEX,parameters.SIGHT_MUTATE_INDEX)
-                        newbaby.speed += (random.random() - parameters.SPEED_MUTATE_INDEX) * 0.1
+                        newbaby.speed += (random.random() - parameters.SPEED_MUTATE_INDEX) * 0.5
+
                         HUMANS.append(newbaby)
 
 
