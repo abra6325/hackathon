@@ -33,7 +33,6 @@ Mutations (slightly greater/smaller when reproduce)
  - Size
     - you can eat other individuals as food if you are >=20% larger.
     - those prey will move direcly away from the predator
-    - larger sizes move faster even at the same speed value (larger steps)
  - Sight
     - a circular area around each individual
     - An individual only knows if a food/other individual if it is in the area of sense.
