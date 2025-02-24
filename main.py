@@ -152,7 +152,6 @@ class MovableIndividual(pn.GameObject):
     def update(self):
 
         # print("UPDATE")
-        self.age += 1
 
         if self.energy <= 0:
             self.delete()
