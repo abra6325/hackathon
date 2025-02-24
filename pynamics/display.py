@@ -481,8 +481,9 @@ class LegacyProjectWindow(PyNamical):
             self._curcolor = Color(self.color.r, self.color.g, self.color.b)
             self.surface.config(bg=str(self._curcolor))
 
+        ref = list(self.parent.objects)
 
-        for i in self.parent.objects:
+        for i in ref:
 
             self._checks += 1
 

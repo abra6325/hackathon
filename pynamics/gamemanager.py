@@ -212,6 +212,7 @@ class GameManager(PyNamical):
             self.t += 1
 
             for i in self.updates:
+                print(i)
                 i()
 
             self.window.update()
@@ -294,7 +295,7 @@ class GameManager(PyNamical):
     def delete_draws(self, id):
         self.window.surface.delete(id)
 
-    def attach_update_thread(self, object: GameObject):
+    def attach_update_thread(self, object: PyNamical):
         self.ticksteplisteners += 1
 
         def update_self():

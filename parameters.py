@@ -1,5 +1,5 @@
 Num_food = 30
-Num_indi = 10
+Num_indi = 20
 speed = 1.05
 SPEED_MUTATE_INDEX = 0.5
 SIGHT_MUTATE_INDEX = 40

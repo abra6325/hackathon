@@ -34,7 +34,9 @@ def build_class_tree():
         if issubclass(element, PyNamical.P_can_io_classes):
             def __init__wrapper(self, *args, **kwargs):
                 self.__real_init__(*args, **kwargs)
+                self.__pn_completed_initialization__ = True
                 self.finish_creating()
+                
             element.__init__ = __init__wrapper
 
 class PyNamical(EventHolder):
@@ -44,6 +46,7 @@ class PyNamical(EventHolder):
     P_whitelisted = set()
     P_can_io_classes = ()
     MAIN_GAMEMANAGER = None
+    __pn_completed_initialization__ = False
 
     def __init__(self, parent, no_parent=False, uuid=None):
         super().__init__()
@@ -61,6 +64,9 @@ class PyNamical(EventHolder):
         if not no_parent:
             self.parent.children.append(self)
 
+    def __post_init__(self):
+        pass
+
 
     def unbind(self):
         self.parent.children.remove(self)
@@ -70,6 +76,8 @@ class PyNamical(EventHolder):
         if PyNamical.linkedNetworkingDispatcher is not None: 
             
             PyNamical.linkedNetworkingDispatcher.network_newly_created(self)
+
+        self.__post_init__()
 
     def __setattr__(self, key, value):
         try:

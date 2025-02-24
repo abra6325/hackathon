@@ -393,6 +393,7 @@ class Shelter(pn.GameObject):
 
     def update(self):
         self.resident.text = f"{self.residents}/∞"
+        # print(self.__pn_completed_initialization__)
 
 shelter_a = Shelter(ctx, 0, 0)
 shelter_b = Shelter(ctx, 750, 0)
