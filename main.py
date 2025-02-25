@@ -61,7 +61,7 @@ class MovableIndividual(pn.GameObject):
         self.status = "harvesting"
         self.noenergy = False
         self.ai = True
-        self.target = None
+        self.targetOf = None
 
         self.age = 0
         self.fissioned = False
@@ -89,6 +89,8 @@ class MovableIndividual(pn.GameObject):
                     large[1] = i
 
         if large[1] and large[0] < self.sight:
+            if isinstance(large[1],MovableIndividual):
+                large[1].targetOf = self
             return large
         else:
             return None
@@ -192,99 +194,115 @@ class MovableIndividual(pn.GameObject):
                 # self.nearest = minshelt
 
             #MOVING
+            if self.targetOf is None:
+                if self.nearest != None:
 
-            if self.nearest != None:
+                    self.nearestDistance = self.position.distance(self.nearest.position)
 
-                self.nearestDistance = self.position.distance(self.nearest.position)
+                    cleanVal = self.nearest.position.subtract_dim(self.position)
 
-                cleanVal = self.nearest.position.subtract_dim(self.position)
+                    xchange = cleanVal.x / self.nearestDistance * self.speed * parameters.MOVE_SPEED_MULTIPLIER
 
-                xchange = cleanVal.x / self.nearestDistance * self.speed * parameters.MOVE_SPEED_MULTIPLIER
+                    ychange = cleanVal.y / self.nearestDistance * self.speed * parameters.MOVE_SPEED_MULTIPLIER
 
-                ychange = cleanVal.y / self.nearestDistance * self.speed * parameters.MOVE_SPEED_MULTIPLIER
+                if self.nearest is None:
+                    self.nearestDistance = self.position.distance(self.tmpDestination)
 
-            if self.nearest is None:
-                self.nearestDistance = self.position.distance(self.tmpDestination)
+                    cleanVal = self.tmpDestination.subtract_dim(self.position)
 
-                cleanVal = self.tmpDestination.subtract_dim(self.position)
+                    xchange = cleanVal.x / self.nearestDistance * self.speed
 
-                xchange = cleanVal.x / self.nearestDistance * self.speed
+                    ychange = cleanVal.y / self.nearestDistance * self.speed
 
-                ychange = cleanVal.y / self.nearestDistance * self.speed
-
-                self.position.add_self(xchange, ychange)
-                self.updateNearestOnlyBlobs()
-                if self.nearestDistance < 2:
-                    self.updateNearest()
-
-
-            else:
-
-                if isinstance(self.nearest, Shelter):
-                    if self.collide(self.nearest):
-
-                        xchange = 0
-                        ychange = 0
-
-                        self.noenergy = True
-                        if not self.fissioned:
-                            self.fissioned = True
-
-                            half = self.energy / 2
-                            self.energy = half
-
-                            size = self.size.x
-                            size += random.randint(-parameters.SIZE_MUTATE_INDEX, parameters.SIZE_MUTATE_INDEX)
-                            size = max(size, 5)
-
-                            newbaby = MovableIndividual(self.parent, size,
-                                                        self.nearest.position.x + random.randint(25, 50),
-                                                        self.nearest.position.y + random.randint(25, 50))
-                            newbaby.energy = half
-                            newbaby.fissioned = True
-                            newbaby.noenergy = True
-                            newbaby.sight = self.sight + random.randint(-parameters.SIGHT_MUTATE_INDEX,parameters.SIGHT_MUTATE_INDEX)
-                            newbaby.speed += (random.random() - parameters.SPEED_MUTATE_INDEX) * 0.5
-                            newbaby.status = "sheltering"
-                            newbaby.nearest = self.nearest
-                            newbaby.ai = False
-                            self.ai = False
-                            HUMANS.append(newbaby)
-
-                elif isinstance(self.nearest, Blob):
-                    self.noenergy = False
-                    if self.fissioned:
-                        self.fissioned = False
-                    if self.collide(self.nearest):
-                        self.nearest.delete()
-                        self.energy += self.nearest.nutrition
-
-
-                        self.nearest = None
-                        self.nearestDistance = 0
-                        assert isinstance(self.parent, pn.GameManager)
-
-                        # b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
-                        # FRUITS.append(b)
+                    self.position.add_self(xchange, ychange)
+                    self.updateNearestOnlyBlobs()
+                    if self.nearestDistance < 2:
                         self.updateNearest()
 
-                elif isinstance(self.nearest, MovableIndividual):
-                    if (self.size.x - self.nearest.size.x) / self.nearest.size.x >= 0.2:
+
+                else:
+
+                    if isinstance(self.nearest, Shelter):
                         if self.collide(self.nearest):
-                            self.nearest.energy_display.delete()
+
+                            xchange = 0
+                            ychange = 0
+
+                            self.noenergy = True
+                            if not self.fissioned:
+                                self.fissioned = True
+
+                                half = self.energy / 2
+                                self.energy = half
+
+                                size = self.size.x
+                                size += random.randint(-parameters.SIZE_MUTATE_INDEX, parameters.SIZE_MUTATE_INDEX)
+                                size = max(size, 5)
+
+                                newbaby = MovableIndividual(self.parent, size,
+                                                            self.nearest.position.x + random.randint(25, 50),
+                                                            self.nearest.position.y + random.randint(25, 50))
+                                newbaby.energy = half
+                                newbaby.fissioned = True
+                                newbaby.noenergy = True
+                                newbaby.sight = self.sight + random.randint(-parameters.SIGHT_MUTATE_INDEX,parameters.SIGHT_MUTATE_INDEX)
+                                newbaby.speed += (random.random() - parameters.SPEED_MUTATE_INDEX) * 0.5
+                                newbaby.status = "sheltering"
+                                newbaby.nearest = self.nearest
+                                newbaby.ai = False
+                                self.ai = False
+                                HUMANS.append(newbaby)
+
+                    elif isinstance(self.nearest, Blob):
+                        self.noenergy = False
+                        if self.fissioned:
+                            self.fissioned = False
+                        if self.collide(self.nearest):
                             self.nearest.delete()
+                            self.energy += self.nearest.nutrition
 
-                            self.energy += self.nearest.energy
 
+                            self.nearest = None
+                            self.nearestDistance = 0
+                            assert isinstance(self.parent, pn.GameManager)
 
-                            HUMANS.remove(self.nearest)
+                            # b = Blob(ctx, 10, random.randint(0, 799), random.randint(0, 799), 10)
+                            # FRUITS.append(b)
+                            self.updateNearest()
+
+                    elif isinstance(self.nearest, MovableIndividual):
+                        if self.nearestDistance > self.sight:
+
+                            self.tmpDestination = self.nearest.position
+                            self.nearest.targetOf = None
                             self.nearest = None
 
-                            for human in HUMANS:
-                                human.updateNearest()
+                        elif (self.size.x - self.nearest.size.x) / self.nearest.size.x >= 0.2:
+                            if self.collide(self.nearest):
+                                self.nearest.energy_display.delete()
+                                self.nearest.delete()
+
+                                self.energy += self.nearest.energy
 
 
-                            self.updateNearest()
+                                HUMANS.remove(self.nearest)
+                                self.nearest = None
+
+                                for human in HUMANS:
+                                    human.updateNearest()
+
+
+                                self.updateNearest()
+            else:
+                tmpDist = self.position.distance(self.targetOf.position)
+
+                cleanVal = self.targetOf.position.subtract_dim(self.position)
+
+                xchange = cleanVal.x / tmpDist * self.speed * parameters.MOVE_SPEED_MULTIPLIER
+
+                ychange = cleanVal.y / tmpDist * self.speed * parameters.MOVE_SPEED_MULTIPLIER
+                xchange *= -1
+                ychange *= -1
 
 
 
@@ -390,6 +408,7 @@ Average Sight: {self.sight_avg}"""
                 for human in HUMANS:
                     pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"]).play(human.energy_display.font.color, [0, 0, 0])
                     human.ai = True
+                    human.targetOf = None
                 ani = pn.Animation(pn.CubicBezier(0, 0, 0.58, 1), duration=32, fields=["r", "g", "b"])
                 ani.play(window.color, [255, 255, 255])
 
